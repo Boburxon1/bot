@@ -2,8 +2,14 @@ import telebot
 from telebot.types import BotCommand
 from keyboards import general_classes, inline_hafta_kunlari
 from jadval import jadval
+from telebot import types
+from dotenv import load_dotenv
+import os
 
-TOKEN = "8534971100:AAHFEqibgz-E47qxXh6Hg0QvhygBjiVe2go"
+load_dotenv()
+
+TOKEN = os.getenv("TOKEN")
+admin_id = os.getenv("ADMIN_ID")
 bot = telebot.TeleBot(TOKEN)
 
 user_data = {}
@@ -16,6 +22,48 @@ def set_bot_commands():
 
 set_bot_commands()
 
+@bot.message_handler(func=lambda message: True)
+def testing(message):
+    if message.text == '/start':
+        return start(message)
+
+    if message.text == '/admin':
+        return admin(message)
+
+# ----------------------------admin----------------------------------
+@bot.message_handler(commands=['admin'])
+def admin(message):
+    chat_id = message.chat.id
+
+    if chat_id == int(admin_id):
+        bot.send_message(chat_id, "Admin panelga xush kelibsiz. Qaysi sinfni jadvalini o'zgartirmoqchisiz", reply_markup=general_classes())
+        bot.register_next_step_handler(message, take_table)
+
+    elif chat_id != int(admin_id):
+        bot.send_message(chat_id, "Siz admin emassiz")
+
+def take_table(message):
+    chat_id = message.chat.id
+    classes = [
+        "5-A", "5-B", "5-D",
+        "6-A", "6-B", "6-D", "6-E", "6-F",
+        "7-A", "7-D", "7-E",
+        "8-A", "8-B", "8-D", "8-E", "8-F",
+        "9-A", "9-B", "9-D", "9-E", "9-F",
+        "10-A", "10-B", "10-D", "10-G",
+        "11-A", "11-D", "11-E"
+    ]
+    for x in classes:
+        if message.text == x:
+            bot.send_message(chat_id, "Yangi jadvalni kiriting: ")
+            bot.register_next_step_handler(message, change_table)
+
+def change_table(message):
+    chat_id = message.chat.id
+    new_table = message.text
+    print(new_table)
+
+# ----------------------------start-------------------------------------
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(
@@ -43,12 +91,11 @@ def sinf_tanlandi(message):
         parse_mode="HTML",
         reply_markup=inline_hafta_kunlari()
     )
-    
-    # Pastdagi tugmalarni 100% yo‘qotish – bitta nuqta bilan (deyarli ko‘rinmaydi)
+    remove_morkup = types.ReplyKeyboardRemove()
     bot.send_message(
         message.chat.id,
-        ".",  # Faqat bitta nuqta – chatda deyarli sezilmaydi
-        reply_markup=telebot.types.ReplyKeyboardRemove()
+        ".",
+        reply_markup=remove_morkup
     )
 
 @bot.callback_query_handler(func=lambda call: True)
