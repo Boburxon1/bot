@@ -15,7 +15,7 @@ def general_classes():
     
     for i in range(0, len(sinflar), 3):
         row = sinflar[i:i+3]
-        kb.row(*(KeyboardButton(f"{s}-sinf") for s in row))
+        kb.row(*(KeyboardButton(f"{s}") for s in row))
     
     return kb
 
